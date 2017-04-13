@@ -1,0 +1,1 @@
+../notifiers/notifier_fail.sh
