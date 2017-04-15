@@ -22,6 +22,9 @@ using namespace std;
 
 extern const vector<string> LogLevels;
 
+string ltos(int level);
+int ltoi(string level);
+
 class Message
 {
 

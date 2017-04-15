@@ -23,6 +23,8 @@ class TestNotify : public TestFixture
     CPPUNIT_TEST(testNoticeMsg);
     CPPUNIT_TEST(testAckMsg);
     CPPUNIT_TEST(testCleanup);
+    CPPUNIT_TEST(testCleanupPersistance);
+    CPPUNIT_TEST(testCleanupLevel);
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -41,4 +43,6 @@ public:
     void testNoticeMsg();
     void testAckMsg();
     void testCleanup();
+    void testCleanupPersistance();
+    void testCleanupLevel();
 };

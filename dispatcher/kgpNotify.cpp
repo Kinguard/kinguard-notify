@@ -16,6 +16,24 @@ const vector<string> LogLevels {
     "LOG_DEBUG"
 };
 
+int ltoi(string level)
+{
+   if(level == "LOG_EMERG")     return LOG_EMERG;
+   if(level == "LOG_ALERT")     return LOG_ALERT;
+   if(level == "LOG_CRIT")      return LOG_CRIT;
+   if(level == "LOG_ERR")       return LOG_ERR;
+   if(level == "LOG_WARNING")   return LOG_WARNING;
+   if(level == "LOG_NOTICE")    return LOG_NOTICE;
+   if(level == "LOG_INFO")      return LOG_INFO;
+   if(level == "LOG_DEBUG")     return LOG_DEBUG;
+   return -1;
+}
+
+string ltos(int level)
+{
+    return LogLevels[level];
+}
+
 /*   ---- CLASS 'Message' ---  */
 int Message::ResetNotifiers(string loglevel)
 {
@@ -87,7 +105,7 @@ NewMessage::NewMessage(string level, string message)
 
 NewMessage::NewMessage(int level, string message)
 {
-    this->Details(LogLevels[level],message,"",false);
+    this->Details(ltos(level),message,"",false);
 }
 
 
@@ -185,15 +203,15 @@ int ExistingMessage::CleanUp()
         parsedMsg = this->getFilemsg(message);
         msgtime = stol(parsedMsg["date"].asString());
         persistantmsg = parsedMsg["persistant"].asBool();
-        if(persistantmsg)
-        {
-            logg << Logger::Debug << "Do not remove: " << File::GetFileName(message) << lend;
-        }
-        if( (time(NULL) > (msgtime + MAX_ACTIVE)) && (!persistantmsg) )
+        if( (time(NULL) > (msgtime + MAX_ACTIVE)) && (!persistantmsg) && (ltoi(parsedMsg["level"].asString()) >= LOG_AUTOREMOVE ))
         {
             logg << Logger::Debug << "Archiving message " << File::GetFileName(message) << lend;
             File::Move(message, HISTORYDIR+File::GetFileName(message));
             countRemoved++;
+        }
+        else
+        {
+            logg << Logger::Debug << "Not removing: " << File::GetFileName(message) << lend;
         }
 
     }

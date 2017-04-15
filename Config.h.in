@@ -15,6 +15,7 @@
 
 #define MAX_ACTIVE 2628000         // one month
 #define MAX_HISTORY 3 * MAX_ACTIVE
+#define LOG_AUTOREMOVE  LOG_NOTICE
 
 // For unittests
 #define APP_PATH "@APP_PATH@"
