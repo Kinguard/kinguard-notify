@@ -9,3 +9,6 @@ debian/libkgpnotify-dev
 debian/libkgpnotify*.debhelper
 debian/.debhelper
 debian/debhelper*
+test/CMakeFiles/
+test/Makefile
+test/cmake_install.cmake
