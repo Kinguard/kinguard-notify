@@ -12,7 +12,6 @@
 #include <libutils/FileUtils.h>
 #include <libutils/String.h>
 #include <libutils/Process.h>
-#include <libutils/Logger.h>
 
 
 namespace Notify
@@ -147,5 +146,5 @@ public:
 
 }
 
-#endif // KGPDISPATCHER_H
+#endif // KGPNOTIFY_H
 

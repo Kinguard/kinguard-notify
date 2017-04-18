@@ -1,8 +1,8 @@
-project(kgpNotify)
+project(kgpnotify)
 cmake_minimum_required(VERSION 2.8)
 
 include( FindPkgConfig )
-pkg_check_modules ( LIBOPI REQUIRED libopi )
+#pkg_check_modules ( LIBOPI REQUIRED libopi )
 pkg_check_modules ( LIBUTILS REQUIRED libutils>=1.5.8 )
 pkg_check_modules ( LIBJSONCPP REQUIRED jsoncpp )
 
@@ -15,7 +15,7 @@ set (VERSION_FULL "${VERSION}.${VERSION_PATCH}")
 set (APP_PATH "${PROJECT_BINARY_DIR}")
 set (SRC_PATH "${PROJECT_SOURCE_DIR}")
 set (LIB_NAME "lib${PROJECT_NAME}")
-set (APP_NAME "kgpNotifier")
+set (APP_NAME "kgp-notifier")
 
 if(APP_BUILD MATCHES deb)
 		set ( APP_BUILD_PACKAGE 1 )
@@ -45,8 +45,7 @@ configure_file(
         @ONLY
 )
 
-
-# Set source list for kgp-sysinfo 
+# Set source list
 set( headers
         "${PROJECT_SOURCE_DIR}/dispatcher/kgpNotify.h"
         "${PROJECT_BINARY_DIR}/Config.h"
@@ -60,16 +59,6 @@ set( src
 add_library( ${PROJECT_NAME}_static STATIC ${src} )
 add_library( ${PROJECT_NAME} SHARED ${src} )
 
-
-#set( app_headers
-#        "${PROJECT_SOURCE_DIR}/kgpNotifer.h"
-#        "${PROJECT_BINARY_DIR}/Config.h"
-#)
-#set( app_src
-#        "${PROJECT_SOURCE_DIR}/kgpNotifier.cpp"
-#)
-#
-#add_executable(${APP_NAME} "${app_src}")
 
 target_link_libraries(${PROJECT_NAME}
         ${LIBJSONCPP_LDFLAGS}
@@ -85,8 +74,8 @@ set_target_properties( ${PROJECT_NAME}_static PROPERTIES
                 OUTPUT_NAME ${PROJECT_NAME}
         )
 
-
 add_subdirectory( test )
+
 
 enable_testing()
 add_test( NAME TestLibNotify COMMAND testapp )

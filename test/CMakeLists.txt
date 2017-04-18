@@ -13,5 +13,5 @@ include_directories(
 add_definitions( -std=c++11 )
 add_executable( testapp ${testapp_src} )
 
-target_link_libraries( testapp kgpNotify ${CPPUNIT_LDFLAGS} ${LIBOPI_LDFLAGS} )
+target_link_libraries( testapp ${PROJECT_NAME} ${CPPUNIT_LDFLAGS} ${LIBOPI_LDFLAGS} )
 

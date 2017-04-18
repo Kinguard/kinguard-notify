@@ -2,9 +2,10 @@ CMakeLists.txt.*
 obj-*
 debian/tmp
 debian/files
-debian/lib-kgpnotify*.log
-debian/lib-kgpnotify*.substvars
-debian/lib-kgpnotify1
-debian/lib-kgpnotify-dev
-debian/lib-kgpnotify*.debhelper
+debian/libkgpnotify*.log
+debian/libkgpnotify*.substvars
+debian/libkgpnotify1
+debian/libkgpnotify-dev
+debian/libkgpnotify*.debhelper
 debian/.debhelper
+debian/debhelper*
