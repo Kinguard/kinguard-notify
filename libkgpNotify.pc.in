@@ -3,7 +3,7 @@ exec_prefix=@CMAKE_INSTALL_PREFIX@
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
 
-Name: @APP_NAME@
+Name: @LIB_NAME@
 Description: Kinguard Project Notify Dispatcher
 Version: @VERSION_FULL@
 Requires: libutils >= 1.0, jsoncpp

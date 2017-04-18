@@ -5,6 +5,7 @@
 #define VERSION_MINOR @VERSION_MINOR@
 
 #define APP_NAME	"@APP_NAME@"
+#define LIB_NAME	"@LIB_NAME@"
 
 #cmakedefine APP_BUILD_PACKAGE
 #cmakedefine APP_BUILD_LOCAL

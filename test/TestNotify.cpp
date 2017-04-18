@@ -35,7 +35,7 @@ string TestNotify::CreateTestMsg()
 void TestNotify::setUp()
 {
     // Divert logger to syslog
-    openlog( APP_NAME, LOG_PERROR, LOG_DAEMON);
+    openlog( LIB_NAME, LOG_PERROR, LOG_DAEMON);
     logg.SetOutputter( [](const string& msg){ syslog(LOG_INFO, "%s",msg.c_str());});
     logg.SetLogName("");
 
@@ -53,8 +53,8 @@ void TestNotify::setUp()
 
 void TestNotify::tearDown()
 {
-    File::Write(SPOOLDIR "dummy", "dummystring",0660);
-    Process::Exec("rm " SPOOLDIR "*");
+    Process::Exec("rm -rf " SPOOLDIR);
+    Process::Exec("rm -rf " HISTORYDIR);
 }
 
 void TestNotify::testNewMsg()

@@ -1,0 +1,24 @@
+Source: kgp-notify
+Section:admin
+Priority: optional
+Maintainer: PA Nilsson <pa@openproducts.se>
+Build-Depends: debhelper (>= 8.0.0),
+	cmake,
+	pkg-config,
+	libopi-dev,
+	libutils-dev,
+	libcppunit-dev
+Standards-Version: 3.9.4
+Homepage: http://www.openproducts.com
+
+Package: lib-kgpnotify-dev
+Section: libdevel
+Architecture: any
+Depends: lib-kgpnotify1 (= ${binary:Version})
+Description: Kinguard Notification System development files
+
+Package: lib-kgpnotify1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Kinguard Notification System

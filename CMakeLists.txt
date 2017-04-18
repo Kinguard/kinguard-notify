@@ -14,7 +14,8 @@ set (VERSION_FULL "${VERSION}.${VERSION_PATCH}")
 
 set (APP_PATH "${PROJECT_BINARY_DIR}")
 set (SRC_PATH "${PROJECT_SOURCE_DIR}")
-set (APP_NAME "lib${PROJECT_NAME}")
+set (LIB_NAME "lib${PROJECT_NAME}")
+set (APP_NAME "kgpNotifier")
 
 if(APP_BUILD MATCHES deb)
 		set ( APP_BUILD_PACKAGE 1 )
@@ -55,8 +56,20 @@ set( src
         "${PROJECT_SOURCE_DIR}/dispatcher/kgpNotify.cpp"
         )
 
+
 add_library( ${PROJECT_NAME}_static STATIC ${src} )
 add_library( ${PROJECT_NAME} SHARED ${src} )
+
+
+#set( app_headers
+#        "${PROJECT_SOURCE_DIR}/kgpNotifer.h"
+#        "${PROJECT_BINARY_DIR}/Config.h"
+#)
+#set( app_src
+#        "${PROJECT_SOURCE_DIR}/kgpNotifier.cpp"
+#)
+#
+#add_executable(${APP_NAME} "${app_src}")
 
 target_link_libraries(${PROJECT_NAME}
         ${LIBJSONCPP_LDFLAGS}
