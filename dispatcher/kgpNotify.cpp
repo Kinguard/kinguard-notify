@@ -35,6 +35,11 @@ string ltos(int level)
 }
 
 /*   ---- CLASS 'Message' ---  */
+Message::Message()
+{
+
+}
+
 int Message::ResetNotifiers(string loglevel)
 {
     //printf("Reset Notifiers on loglevel: %s\n",loglevel.c_str());
@@ -89,6 +94,66 @@ Json::Value Message::getFilemsg(string id) {
     }
 
 }
+int Message::CleanUp()
+{
+    this->CleanUp(false);
+}
+
+int Message::CleanUp(bool boot)
+{
+    Json::Value parsedMsg;
+    time_t msgtime;
+    int countRemoved=0;
+    bool persistantmsg;
+    bool clearonboot;
+
+    list<string> messages = File::Glob(HISTORYDIR "*");
+    for( const string& message: messages)
+    {
+        //logg << Logger::Debug << "Read file" << File::GetFileName(message) << lend;
+        parsedMsg = this->getFilemsg(message);
+        msgtime = stol(parsedMsg["date"].asString());
+        if( time(NULL) > (msgtime + MAX_HISTORY) )
+        {
+            logg << Logger::Debug << "Removing message " << File::GetFileName(message) << lend;
+            File::Delete(message);
+            countRemoved++;
+        }
+
+    }
+
+    messages = File::Glob(SPOOLDIR "*");
+    for( const string& message: messages)
+    {
+        //logg << Logger::Debug << "Read file" << File::GetFileName(message) << lend;
+        parsedMsg = this->getFilemsg(message);
+        msgtime = stol(parsedMsg["date"].asString());
+        persistantmsg = parsedMsg["persistant"].asBool();
+        clearonboot = parsedMsg["clearonboot"].asBool();
+
+        if(
+                (time(NULL) > (msgtime + MAX_ACTIVE))
+                && (!persistantmsg)
+                && (ltoi(parsedMsg["level"].asString()) >= LOG_AUTOREMOVE )
+                || (boot && clearonboot)
+        )
+        {
+            logg << Logger::Debug << "Archiving message " << File::GetFileName(message) << lend;
+            File::Move(message, HISTORYDIR+File::GetFileName(message));
+            countRemoved++;
+        }
+        else
+        {
+            logg << Logger::Debug << "Not removing: " << File::GetFileName(message) << lend;
+        }
+
+    }
+
+    return countRemoved;
+
+}
+
+
 
 /*   ---- CLASS 'NewMessage' ---  */
 
@@ -100,16 +165,16 @@ NewMessage::NewMessage()
 
 NewMessage::NewMessage(string level, string message)
 {
-    this->Details(level,message,"",false);
+    this->Details(level,message,"",false, true);
 }
 
 NewMessage::NewMessage(int level, string message)
 {
-    this->Details(ltos(level),message,"",false);
+    this->Details(ltos(level),message,"",false, true);
 }
 
 
-void NewMessage::Details(string level, const string& message, string issuer, bool persistant)
+void NewMessage::Details(string level, const string& message, string issuer, bool persistant, bool clearonboot)
 {
     this->log_level = level;
     this->body = message;
@@ -117,6 +182,7 @@ void NewMessage::Details(string level, const string& message, string issuer, boo
     this->id = String::UUID();
     this->date = time(NULL);
     this->issuer = issuer;
+    this->clearonboot = clearonboot;
 }
 
 int NewMessage::Send()
@@ -129,6 +195,7 @@ int NewMessage::Send()
     jsonMsg["issuer"] = this->issuer;
     jsonMsg["id"] = this->id;
     jsonMsg["persistant"] = this->persistant;
+    jsonMsg["clearonboot"] = this->clearonboot;
 
     File::Write(SPOOLDIR+id, writer.write(jsonMsg).c_str(),0660);
     if (File::FileExists(SPOOLDIR+id))
@@ -174,51 +241,6 @@ ExistingMessage::ExistingMessage(string id)
 
 /* --- Public  --- */
 
-int ExistingMessage::CleanUp()
-{
-    Json::Value parsedMsg;
-    time_t msgtime;
-    int countRemoved=0;
-    bool persistantmsg;
-
-    list<string> messages = File::Glob(HISTORYDIR "*");
-    for( const string& message: messages)
-    {
-        //logg << Logger::Debug << "Read file" << File::GetFileName(message) << lend;
-        parsedMsg = this->getFilemsg(message);
-        msgtime = stol(parsedMsg["date"].asString());
-        if( time(NULL) > (msgtime + MAX_HISTORY) )
-        {
-            logg << Logger::Debug << "Removing message " << File::GetFileName(message) << lend;
-            File::Delete(message);
-            countRemoved++;
-        }
-
-    }
-
-    messages = File::Glob(SPOOLDIR "*");
-    for( const string& message: messages)
-    {
-        //logg << Logger::Debug << "Read file" << File::GetFileName(message) << lend;
-        parsedMsg = this->getFilemsg(message);
-        msgtime = stol(parsedMsg["date"].asString());
-        persistantmsg = parsedMsg["persistant"].asBool();
-        if( (time(NULL) > (msgtime + MAX_ACTIVE)) && (!persistantmsg) && (ltoi(parsedMsg["level"].asString()) >= LOG_AUTOREMOVE ))
-        {
-            logg << Logger::Debug << "Archiving message " << File::GetFileName(message) << lend;
-            File::Move(message, HISTORYDIR+File::GetFileName(message));
-            countRemoved++;
-        }
-        else
-        {
-            logg << Logger::Debug << "Not removing: " << File::GetFileName(message) << lend;
-        }
-
-    }
-
-    return countRemoved;
-
-}
 int ExistingMessage::Ack()
 {
     Json::Value parsedMsg;

@@ -91,9 +91,10 @@ void TestNotify::testDetailedMsg()
 
 
     NewMessage Msg;
-    Msg.Details(ltos(LOG_ERR),testmessage,issuer,true);
+    Msg.Details(ltos(LOG_ERR),testmessage,issuer,true,true);
     Msg.Send();
     id = Msg.GetID();
+
     CPPUNIT_ASSERT_MESSAGE("ID shoule not be empty",id != "");
     parsedMsg = Msg.getFilemsg(SPOOLDIR+id);
     CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect persistance",true,parsedMsg["persistant"].asBool());
@@ -109,7 +110,9 @@ void TestNotify::testNoticeMsg()
 
     NewMessage Msg(ltos(LOG_NOTICE),testmessage);
     countTriggered = Msg.Send();
+
     CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect number of notifiers triggered",VALID_NOTICE_NOTIFIERS,countTriggered);
+
     id = Msg.GetID();
     CPPUNIT_ASSERT_MESSAGE("ID shoule not be empty",id != "");
     parsedMsg = Msg.getFilemsg(SPOOLDIR+id);
@@ -151,18 +154,18 @@ void TestNotify::testCleanup()
     // write a message that is older than MAX_ACTIVE time
     aid = String::UUID();
     oldtime = time(NULL) - ACTIVETIME;
-    testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+aid+"\",\"issuer\":\"\",\"level\":\"LOG_NOTICE\",\"message\":\"Notice message\",\"persistant\":false}";
+    testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+aid+"\",\"issuer\":\"\",\"level\":\"LOG_NOTICE\",\"message\":\"Notice message\",\"persistant\":false,\"clearonboot\":true}";
     //printf("MSG: %s\n",testmessage.c_str());
     File::Write(SPOOLDIR "/"+aid,testmessage,0660);
 
     // write a message that is older than MAX_HISTORY time
     hid = String::UUID();
     oldtime = time(NULL) - HISTORYTIME;
-    testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+hid+"\",\"issuer\":\"\",\"level\":\"LOG_NOTICE\",\"message\":\"Notice message\",\"persistant\":false}";
+    testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+hid+"\",\"issuer\":\"\",\"level\":\"LOG_NOTICE\",\"message\":\"Notice message\",\"persistant\":false,\"clearonboot\":true}";
     //printf("MSG: %s\n",testmessage.c_str());
     File::Write(HISTORYDIR+hid,testmessage,0660);
 
-    ExistingMessage Msg(aid);
+    Notify::Message Msg;
     removed = Msg.CleanUp();
     CPPUNIT_ASSERT_MESSAGE("'History'' message not removed",Utils::File::FileExists(HISTORYDIR+hid) == false);
 
@@ -183,11 +186,11 @@ void TestNotify::testCleanupPersistance()
     // write a message that is older than MAX_ACTIVE time but with persistant set to 'true'
     pid = String::UUID();
     oldtime = time(NULL) - ACTIVETIME;
-    testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+pid+"\",\"issuer\":\"\",\"level\":\"LOG_NOTICE\",\"message\":\"Notice message\",\"persistant\":true}";
+    testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+pid+"\",\"issuer\":\"\",\"level\":\"LOG_NOTICE\",\"message\":\"Notice message\",\"persistant\":true,\"clearonboot\":true}";
     //printf("MSG: %s\n",testmessage.c_str());
     File::Write(SPOOLDIR "/"+pid,testmessage,0660);
 
-    ExistingMessage Msg(pid);
+    Notify::Message Msg;
     removed = Msg.CleanUp();
 
     CPPUNIT_ASSERT_MESSAGE("'Persistant' message not in SPOOLDIR",Utils::File::FileExists(SPOOLDIR+pid));
@@ -204,24 +207,46 @@ void TestNotify::testCleanupLevel()
     // write a message that is older than MAX_ACTIVE time and with level set to "LOG_NOTICE"
     nid = String::UUID();
     oldtime = time(NULL) - ACTIVETIME;
-    testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+nid+"\",\"issuer\":\"\",\"level\":\"LOG_NOTICE\",\"message\":\"Notice message\",\"persistant\":false}";
+    testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+nid+"\",\"issuer\":\"\",\"level\":\"LOG_NOTICE\",\"message\":\"Notice message\",\"persistant\":false,\"clearonboot\":true}";
     //printf("MSG: %s\n",testmessage.c_str());
     File::Write(SPOOLDIR "/"+nid,testmessage,0660);
+
 
     // write a message that is older than MAX_ACTIVE time but with level higher than "LOG_AUTOREMOVE"
     wid = String::UUID();
     oldtime = time(NULL) - ACTIVETIME;
-    testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+wid+"\",\"issuer\":\"\",\"level\":\"LOG_WARNING\",\"message\":\"Notice message\",\"persistant\":false}";
+    testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+wid+"\",\"issuer\":\"\",\"level\":\"LOG_WARNING\",\"message\":\"Notice message\",\"persistant\":false,\"clearonboot\":true}";
     //printf("MSG: %s\n",testmessage.c_str());
     File::Write(SPOOLDIR "/"+wid,testmessage,0660);
 
-    ExistingMessage Msg(nid);
+    Notify::Message Msg;
     removed = Msg.CleanUp();
 
-    if (Utils::File::FileExists(SPOOLDIR+nid)) printf("File OK");
     CPPUNIT_ASSERT_MESSAGE("'Notice' message still in SPOOLDIR",Utils::File::FileExists(SPOOLDIR+nid) == false);
 
-
-    if (Utils::File::FileExists(SPOOLDIR+wid)) printf("File OK");
     CPPUNIT_ASSERT_MESSAGE("'Warning' message not in SPOOLDIR",Utils::File::FileExists(SPOOLDIR+wid));
+}
+
+void TestNotify::testCleanupBoot()
+{
+    string id1,id2;
+    int removed;
+
+    NewMessage KeepMsg;
+    KeepMsg.Details(ltos(LOG_NOTICE),"Keep on boot","Test system",false,false);
+    id1 = KeepMsg.GetID();
+    KeepMsg.Send();
+
+    NewMessage ClearMsg;
+    ClearMsg.Details(ltos(LOG_NOTICE),"Remove on boot","Test system",false,true);
+    id2 = ClearMsg.GetID();
+    ClearMsg.Send();
+
+    removed = ClearMsg.CleanUp(true);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect number of messages removed",1,removed);
+
+    CPPUNIT_ASSERT_MESSAGE("'Keep' message not in SPOOLDIR",Utils::File::FileExists(SPOOLDIR+id1));
+
+    CPPUNIT_ASSERT_MESSAGE("'Remove' message still in SPOOLDIR",Utils::File::FileExists(SPOOLDIR+id2) == false);
+
 }

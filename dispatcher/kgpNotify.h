@@ -33,13 +33,26 @@ protected:
     Json::FastWriter writer;
 
 public:
+    Message();
     /**
      * @brief Trigger notifiers
      * @return The number of notifiers triggered
      */
     int TrigNotifiers(string id, string loglevel);
     int ResetNotifiers(string loglevel);
+
+    /**
+     * @brief Read a message 'id' from file
+     * @return the message as a Json object
+     */
     Json::Value getFilemsg(string path);
+
+    /**
+     * @brief Deletes messages from archive that are older than MAX_DAYS old
+     * @return the number of messages deleted
+     */
+    int CleanUp();
+    int CleanUp(bool boot);
 
 };
 
@@ -55,6 +68,7 @@ private:
     string issuer;
     time_t date;
     bool persistant;
+    bool clearonboot;
 
 public:
 
@@ -80,7 +94,7 @@ public:
      * @brief Enter details of message
      * @return none
      */
-    void Details(string level, const string& message, string issuer, bool persistant);
+    void Details(string level, const string& message, string issuer, bool persistant, bool clearonboot);
 
     /**
      * @brief Write message to spool queue and trigger notifiers
@@ -116,11 +130,6 @@ private :
     string id;
 
 public:
-    /**
-     * @brief Deletes messages from archive that are older than MAX_DAYS old
-     * @return the number of messages deleted
-     */
-    int CleanUp();
 
     /**
      * @brief Creates a new empty message with uuid set.
