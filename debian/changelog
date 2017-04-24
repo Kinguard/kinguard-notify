@@ -1,3 +1,15 @@
+kgpnotify (1.0.1) vili; urgency=medium
+
+  * Removed Config.h file from installation files 
+
+ -- PA Nilsson <pa@openproducts.se>  Fri, 21 Apr 2017 07:58:09 +0200
+
+kgpnotify (0.2) vili; urgency=medium
+
+  * Added kgpnotify to be in link flags. 
+
+ -- PA Nilsson <pa@openproducts.se>  Tue, 18 Apr 2017 16:40:55 +0200
+
 kgpnotify (0.1) testing; urgency=low
 
   * Initial Release.

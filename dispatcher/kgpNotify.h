@@ -1,7 +1,6 @@
 #ifndef KGPNOTIFY_H
 #define KGPNOTIFY_H
 
-#include "kgpNotify.h"
 #include "Config.h"
 #include <syslog.h>
 #include <time.h>

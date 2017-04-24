@@ -144,6 +144,18 @@ void TestNotify::testAckMsg()
     CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect number of notifiers triggered",VALID_NOTICE_NOTIFIERS,countTriggered);
 }
 
+void TestNotify::testAckNoMsg()
+{
+    string id;
+    int countTriggered;
+
+    id = String::UUID();
+    ExistingMessage Msg(id);
+    countTriggered = Msg.Ack();
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect number of notifiers triggered",-1,countTriggered);
+}
+
+
 void TestNotify::testCleanup()
 {
     string testmessage;

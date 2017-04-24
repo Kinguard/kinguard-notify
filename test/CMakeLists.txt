@@ -7,7 +7,7 @@ set( testapp_src
 
 include_directories(
     "${PROJECT_SOURCE_DIR}/dispatcher"
-	"${LIBOPI_INCLUDE_DIRS}"
+        "${LIBOPI_INCLUDE_DIRS}"
 )
 
 add_definitions( -std=c++11 )

@@ -7,6 +7,6 @@ Name: @LIB_NAME@
 Description: Kinguard Project Notify Dispatcher
 Version: @VERSION_FULL@
 Requires: libutils >= 1.0, jsoncpp
-Libs: -L${libdir} -lutils -pthread -lrt -lresolv
+Libs: -L${libdir} -lkgpnotify -lutils -pthread -lrt -lresolv
 Cflags: -I${includedir}
 

@@ -86,12 +86,12 @@ Json::Value Message::getFilemsg(string id) {
     {
         jsonMsg = File::GetContentAsString(id);
         parsingSuccessful =  reader.parse(jsonMsg,parsedMsg);
-        return parsedMsg;
     }
     else
     {
         logg << Logger::Error << "Error reading message file" << lend;
     }
+    return parsedMsg;
 
 }
 int Message::CleanUp()
@@ -125,28 +125,30 @@ int Message::CleanUp(bool boot)
     messages = File::Glob(SPOOLDIR "*");
     for( const string& message: messages)
     {
-        //logg << Logger::Debug << "Read file" << File::GetFileName(message) << lend;
-        parsedMsg = this->getFilemsg(message);
-        msgtime = stol(parsedMsg["date"].asString());
-        persistantmsg = parsedMsg["persistant"].asBool();
-        clearonboot = parsedMsg["clearonboot"].asBool();
-
-        if(
-                (time(NULL) > (msgtime + MAX_ACTIVE))
-                && (!persistantmsg)
-                && (ltoi(parsedMsg["level"].asString()) >= LOG_AUTOREMOVE )
-                || (boot && clearonboot)
-        )
+        if(File::FileExists(message))
         {
-            logg << Logger::Debug << "Archiving message " << File::GetFileName(message) << lend;
-            File::Move(message, HISTORYDIR+File::GetFileName(message));
-            countRemoved++;
-        }
-        else
-        {
-            logg << Logger::Debug << "Not removing: " << File::GetFileName(message) << lend;
-        }
+            //logg << Logger::Debug << "Read file" << File::GetFileName(message) << lend;
+            parsedMsg = this->getFilemsg(message);
+            msgtime = stol(parsedMsg["date"].asString());
+            persistantmsg = parsedMsg["persistant"].asBool();
+            clearonboot = parsedMsg["clearonboot"].asBool();
 
+            if(
+                    (!persistantmsg) && (
+                        (time(NULL) > (msgtime + MAX_ACTIVE))
+                        && (ltoi(parsedMsg["level"].asString()) >= LOG_AUTOREMOVE )
+                        || (boot && clearonboot) )
+            )
+            {
+                logg << Logger::Debug << "Archiving message " << File::GetFileName(message) << lend;
+                File::Move(message, HISTORYDIR+File::GetFileName(message));
+                countRemoved++;
+            }
+            else
+            {
+                logg << Logger::Debug << "Not removing: " << File::GetFileName(message) << lend;
+            }
+        }
     }
 
     return countRemoved;
@@ -255,7 +257,7 @@ int ExistingMessage::Ack()
     }
     else
     {
-        return 0;
+        return -1;
     }
 }
 

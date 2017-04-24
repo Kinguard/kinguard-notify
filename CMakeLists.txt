@@ -2,13 +2,13 @@ project(kgpnotify)
 cmake_minimum_required(VERSION 2.8)
 
 include( FindPkgConfig )
-#pkg_check_modules ( LIBOPI REQUIRED libopi )
+pkg_check_modules ( LIBOPI REQUIRED libopi )
 pkg_check_modules ( LIBUTILS REQUIRED libutils>=1.5.8 )
 pkg_check_modules ( LIBJSONCPP REQUIRED jsoncpp )
 
 set (VERSION_MAJOR 1)
 set (VERSION_MINOR 0)
-set (VERSION_PATCH 0)
+set (VERSION_PATCH 1)
 set (VERSION "${VERSION_MAJOR}.${VERSION_MINOR}")
 set (VERSION_FULL "${VERSION}.${VERSION_PATCH}")
 
@@ -25,11 +25,11 @@ if(APP_BUILD MATCHES deb)
 else()
 		set ( APP_BUILD_LOCAL 1 )
                 set (SPOOLDIR "${PROJECT_BINARY_DIR}/test/testdata/")
-                set (HISTORYDIR "${PROJECT_BINARY_DIR}/test/history/")
+                set (HISTORYDIR "${PROJECT_BINARY_DIR}/test/testdata/history/")
                 set (NOTIFIERSDIR "${PROJECT_SOURCE_DIR}/test-notifiers/")
 endif()
 
-add_definitions( -std=c++11 )
+add_definitions( -std=c++11 -Werror )
 
 include_directories("${PROJECT_BINARY_DIR}")
 include_directories ( "${LIBOPI_INCLUDE_DIRS}" )
@@ -48,7 +48,7 @@ configure_file(
 # Set source list
 set( headers
         "${PROJECT_SOURCE_DIR}/dispatcher/kgpNotify.h"
-        "${PROJECT_BINARY_DIR}/Config.h"
+#        "${PROJECT_BINARY_DIR}/Config.h"
         )
 
 set( src
