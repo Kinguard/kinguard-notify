@@ -1,3 +1,9 @@
+kgpnotify (1.0.3) vili; urgency=medium
+
+  * Fixed typo in post-inst script. 
+
+ -- PA Nilsson <pa@openproducts.se>  Mon, 24 Apr 2017 11:43:09 +0200
+
 kgpnotify (1.0.2) vili; urgency=medium
 
   * Added post-inst script 

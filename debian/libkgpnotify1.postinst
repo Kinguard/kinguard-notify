@@ -21,7 +21,7 @@ set -e
 case "$1" in
     configure)
 
-		mkdir -p /var/spool/notify/history
+		mkdir -p /var/spool/kgp-notify/history
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
