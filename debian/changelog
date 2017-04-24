@@ -1,3 +1,9 @@
+kgpnotify (1.0.2) vili; urgency=medium
+
+  * Added post-inst script 
+
+ -- PA Nilsson <pa@openproducts.se>  Mon, 24 Apr 2017 09:49:34 +0200
+
 kgpnotify (1.0.1) vili; urgency=medium
 
   * Removed Config.h file from installation files 
