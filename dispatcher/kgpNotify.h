@@ -36,8 +36,8 @@ public:
      * @brief Trigger notifiers
      * @return The number of notifiers triggered
      */
-    int TrigNotifiers(string id, string loglevel);
-    int ResetNotifiers(string loglevel);
+    int TrigNotifiers(string id, int loglevel);
+    int ResetNotifiers(int loglevel);
 
     /**
      * @brief Read a message 'id' from file
@@ -62,7 +62,7 @@ private:
      */
     string id;
     string body;
-    string log_level;
+    int log_level;
     string issuer;
     time_t date;
     bool persistant;

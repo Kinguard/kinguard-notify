@@ -40,13 +40,13 @@ Message::Message()
 
 }
 
-int Message::ResetNotifiers(string loglevel)
+int Message::ResetNotifiers(int loglevel)
 {
-    //printf("Reset Notifiers on loglevel: %s\n",loglevel.c_str());
+    //printf("Reset Notifiers on loglevel: %s\n",ltos(loglevel).c_str());
     return this->TrigNotifiers("",loglevel);
 }
 
-int Message::TrigNotifiers(string id, string loglevel)
+int Message::TrigNotifiers(string id, int loglevel)
 {
     int triggercount = 0;
     int success;
@@ -55,7 +55,7 @@ int Message::TrigNotifiers(string id, string loglevel)
     list<string> dirs = File::Glob(NOTIFIERSDIR "LOG_*");
     for( const string& dir: dirs)
     {
-        if(File::DirExists(dir) && (File::GetFileName(dir) == loglevel) )
+        if(File::DirExists(dir) && (File::GetFileName(dir) == ltos(loglevel)) )
         {
             list<string> notifiers = File::Glob(dir+"/*");
             for( const string& notifier: notifiers)
@@ -178,7 +178,7 @@ NewMessage::NewMessage(int level, string message)
 
 void NewMessage::Details(string level, const string& message, string issuer, bool persistant, bool clearonboot)
 {
-    this->log_level = level;
+    this->log_level = ltoi(level);
     this->body = message;
     this->persistant = persistant;
     this->id = String::UUID();
@@ -193,6 +193,7 @@ int NewMessage::Send()
 
     jsonMsg["date"] = to_string(this->date);
     jsonMsg["message"] = this->body;
+    jsonMsg["levelText"] = ltos(this->log_level);
     jsonMsg["level"] = this->log_level;
     jsonMsg["issuer"] = this->issuer;
     jsonMsg["id"] = this->id;
@@ -224,7 +225,7 @@ void NewMessage::Dump()
     printf("Message:\n%s\n",this->body.c_str());
     printf("Time: %d\n",(int)this->date);
     printf("Issuer: %s\n",this->issuer.c_str());
-    printf("Log level: %s\n",this->log_level.c_str());
+    printf("Log level: %s\n",ltos(this->log_level).c_str());
 }
 
 NewMessage::~NewMessage()
@@ -251,7 +252,7 @@ int ExistingMessage::Ack()
     if( (this->id != "") && File::FileExists(SPOOLDIR+this->id) ) {
         parsedMsg = this->getFilemsg(SPOOLDIR+this->id);
         File::Move(SPOOLDIR+this->id,HISTORYDIR+this->id);
-        countTriggers = this->ResetNotifiers(parsedMsg["level"].asString());
+        countTriggers = this->ResetNotifiers(parsedMsg["level"].asInt());
         this->CleanUp();
         return countTriggers;
     }

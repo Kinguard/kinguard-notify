@@ -79,7 +79,8 @@ void TestNotify::testContentMsg()
     CPPUNIT_ASSERT_MESSAGE("ID shoule not be empty",id != "");
     parsedMsg = Msg.getFilemsg(SPOOLDIR+id);
     CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message body",testmessage,parsedMsg["message"].asString());
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message loglevel",ltos(LOG_ALERT),parsedMsg["level"].asString());
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message integer loglevel",LOG_ALERT,parsedMsg["level"].asInt());
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message loglevel",ltos(LOG_ALERT),parsedMsg["levelText"].asString());
 }
 
 void TestNotify::testDetailedMsg()
@@ -117,7 +118,7 @@ void TestNotify::testNoticeMsg()
     CPPUNIT_ASSERT_MESSAGE("ID shoule not be empty",id != "");
     parsedMsg = Msg.getFilemsg(SPOOLDIR+id);
     CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message body",testmessage,parsedMsg["message"].asString());
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message loglevel",ltos(LOG_NOTICE),parsedMsg["level"].asString());
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message loglevel",ltos(LOG_NOTICE),parsedMsg["levelText"].asString());
 }
 
 void TestNotify::testExistingMsg()
