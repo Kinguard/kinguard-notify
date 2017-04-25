@@ -1,1 +1,2 @@
 usr/lib/lib*.so.*
+notifiers/* /usr/share/kinguard-notify/
