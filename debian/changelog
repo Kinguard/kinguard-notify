@@ -1,3 +1,9 @@
+kgpnotify (1.0.6) vili; urgency=medium
+
+  * Added email and syslog notifiers 
+
+ -- PA Nilsson <pa@openproducts.se>  Thu, 27 Apr 2017 07:23:12 +0200
+
 kgpnotify (1.0.5) vili; urgency=medium
 
   * Added LED notifier for OPI 

@@ -10,7 +10,7 @@ from subprocess import check_output
 # Program can be called with a message UUID as argument or with no args
 # It should be called by a symlink, and the parent dir to the symlink will hold the log level.
 
-DEBUG = True
+DEBUG = False
 
 def setTrigger(ledpath,value):
 	try:
