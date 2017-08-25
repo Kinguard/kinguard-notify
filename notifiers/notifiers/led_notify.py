@@ -10,7 +10,7 @@ from subprocess import check_output
 # Program can be called with a message UUID as argument or with no args
 # It should be called by a symlink, and the parent dir to the symlink will hold the log level.
 
-DEBUG = False
+DEBUG = True
 
 def setTrigger(ledpath,value):
 	try:
@@ -126,6 +126,47 @@ def Opi():
 
 def KEEP():
 	dprint("Running on KEEP")
+	green = "/sys/class/leds/green/"
+	blue = "/sys/class/leds/blue/"
+	red = "/sys/class/leds/red/"
+
+	activemsg = setPrioMsg(["sysctrl","kgp-control","kgp-backup"])
+	if('level' in activemsg):
+		if(activemsg['level'] <= syslog.LOG_ERR):
+			print("LOG ERROR received")
+			SetOn(red)
+			SetOff(green)
+			SetOff(blue)
+
+		elif(activemsg['level'] <= syslog.LOG_WARNING):
+			print("LOG WARNING received")
+			SetOff(red)
+			SetOff(green)
+			SetHeartbeat(blue)
+
+		elif(activemsg['level'] <= syslog.LOG_NOTICE):
+			print("LOG NOTICE received")
+			SetOff(red)
+			SetHeartbeat(green)
+			SetOff(blue)
+
+		elif(activemsg['level'] <= syslog.LOG_INFO):
+			print("LOG INFO received")
+			SetOff(red)
+			SetBlink(green,duty=50)
+			SetOff(blue)
+
+		elif(activemsg['level'] <= syslog.LOG_DEBUG):
+			print("LOG DEBUG received")
+			# do nothing for LED
+		else:
+			print("Unknown log level")
+	else:
+		# no level in active message set to default LED pattern
+			print("No valid messages")
+			SetOff(red)
+			SetOn(green)
+			SetOff(blue)
 
 def setPrioMsg(issuer_prio = []):
 	# if we need to have a priority on the messages based on issuer, a prio list must be supplied.
@@ -178,7 +219,7 @@ if __name__ == "__main__":
 
 	platform = {'PC' : PC,
 				'Opi': Opi,
-				'KEEP' : KEEP
+				'Armada' : KEEP
 				}
 
 	if( len(sys.argv) > 2):

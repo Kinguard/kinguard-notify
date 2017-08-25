@@ -9,7 +9,7 @@ from email.mime.text import MIMEText
 
 # Program can be called with a message UUID as argument or with no args
 # It should be called by a symlink, and the parent dir to the symlink will hold the log level.
-# For this notifier that an email it is only to write everything immediately to syslog,
+# For this notifier that sends an email it is only to sent the message immediately,
 # it is only called for levels in which the symlink exists.
 
 DEBUG = False
@@ -49,11 +49,15 @@ if __name__ == "__main__":
 			sysconf.read_file(add_section_header(fh_sysconf, 'sysinfo'), source=SYSINFO)
 			sysinfo = sysconf['sysinfo']
 			if 'opi_name' not in sysinfo:
-				# update dns by using serialnumber in flash
 				dprint("Missing opi_name in sysinfo")
 				sys.exit(1)
 			else:
 				opi_name = sysinfo['opi_name'].strip('"')
+			if 'domain' not in sysinfo:
+				dprint("Missing domain info in sysinfo")
+				sys.exit(1)
+			else:
+				domain = sysinfo['domain'].strip('"')
 
 		except Exception as e:
 			dprint(e)
@@ -77,7 +81,7 @@ if __name__ == "__main__":
 						"Message Issuer: %s\n\n"
 						"Message Body: \n%s\n"
 					) % (msg['levelText'],msg['issuer'],msg['message'] )
-				sender = ("root@%s.op-i.me") % (opi_name)
+				sender = ("root@%s.%s") % (opi_name,domain)
 				receiver = "root@localhost"
 				email = MIMEText(body)
 				email['Subject'] = ("'%s' message from %s") % (msg['levelText'],opi_name)

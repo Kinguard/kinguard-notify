@@ -1,3 +1,9 @@
+kgpnotify (1.0.7) vili; urgency=medium
+
+  * Added LED functionality for KEEP 
+
+ -- PA Nilsson <pa@openproducts.se>  Thu, 20 Jul 2017 08:19:50 +0200
+
 kgpnotify (1.0.6) vili; urgency=medium
 
   * Added email and syslog notifiers 

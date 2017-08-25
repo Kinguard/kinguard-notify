@@ -27,5 +27,5 @@ Description: Kinguard Notification System development files
 Package: libkgpnotify1
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, python3
 Description: Kinguard Notification System
