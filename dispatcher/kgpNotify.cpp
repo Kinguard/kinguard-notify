@@ -104,22 +104,29 @@ int Message::CleanUp(bool boot)
     Json::Value parsedMsg;
     time_t msgtime;
     int countRemoved=0;
-    bool persistantmsg;
-    bool clearonboot;
+    bool persistantmsg=false;
+    bool clearonboot=false;
 
     list<string> messages = File::Glob(HISTORYDIR "*");
     for( const string& message: messages)
     {
         //logg << Logger::Debug << "Read file" << File::GetFileName(message) << lend;
         parsedMsg = this->getFilemsg(message);
-        msgtime = stol(parsedMsg["date"].asString());
-        if( time(NULL) > (msgtime + MAX_HISTORY) )
+        if( parsedMsg.isMember("date") && parsedMsg["date"].isString() ) {
+            msgtime = stol(parsedMsg["date"].asString());
+            if( time(NULL) > (msgtime + MAX_HISTORY) )
+            {
+                logg << Logger::Debug << "Removing message " << File::GetFileName(message) << lend;
+                File::Delete(message);
+                countRemoved++;
+            }
+        }
+        else
         {
-            logg << Logger::Debug << "Removing message " << File::GetFileName(message) << lend;
+            logg << Logger::Debug << "Unable to read date, removing from histroy: " << File::GetFileName(message) << lend;
             File::Delete(message);
             countRemoved++;
         }
-
     }
 
     messages = File::Glob(SPOOLDIR "*");
@@ -129,24 +136,35 @@ int Message::CleanUp(bool boot)
         {
             //logg << Logger::Debug << "Read file" << File::GetFileName(message) << lend;
             parsedMsg = this->getFilemsg(message);
-            msgtime = stol(parsedMsg["date"].asString());
-            persistantmsg = parsedMsg["persistant"].asBool();
-            clearonboot = parsedMsg["clearonboot"].asBool();
-
-            if(
-                    (!persistantmsg) && (
-                        (time(NULL) > (msgtime + MAX_ACTIVE))
-                        && (ltoi(parsedMsg["level"].asString()) >= LOG_AUTOREMOVE )
-                        || (boot && clearonboot) )
-            )
-            {
-                logg << Logger::Debug << "Archiving message " << File::GetFileName(message) << lend;
-                File::Move(message, HISTORYDIR+File::GetFileName(message));
-                countRemoved++;
+            if( parsedMsg.isMember("date") && parsedMsg["date"].isString() ) {
+                msgtime = stol(parsedMsg["date"].asString());
+                if( parsedMsg.isMember("persistant") ) {
+                    persistantmsg = parsedMsg["persistant"].asBool();
+                }
+                if( parsedMsg.isMember("clearonboot") ) {
+                    clearonboot = parsedMsg["clearonboot"].asBool();
+                }
+                if(
+                        (!persistantmsg) && (
+                            (time(NULL) > (msgtime + MAX_ACTIVE))
+                            && (ltoi(parsedMsg["level"].asString()) >= LOG_AUTOREMOVE )
+                            || (boot && clearonboot) )
+                )
+                {
+                    logg << Logger::Debug << "Archiving message " << File::GetFileName(message) << lend;
+                    File::Move(message, HISTORYDIR+File::GetFileName(message));
+                    countRemoved++;
+                }
+                else
+                {
+                    logg << Logger::Debug << "Not removing: " << File::GetFileName(message) << lend;
+                }
             }
             else
             {
-                logg << Logger::Debug << "Not removing: " << File::GetFileName(message) << lend;
+                logg << Logger::Debug << "Unable to read date, archiving" << File::GetFileName(message) << lend;
+                File::Move(message, HISTORYDIR+File::GetFileName(message));
+                countRemoved++;
             }
         }
     }
@@ -251,6 +269,7 @@ int ExistingMessage::Ack()
 
     if( (this->id != "") && File::FileExists(SPOOLDIR+this->id) ) {
         parsedMsg = this->getFilemsg(SPOOLDIR+this->id);
+        logg << Logger::Debug << "Ack message, archiving to history: " << this->id << lend;
         File::Move(SPOOLDIR+this->id,HISTORYDIR+this->id);
         countTriggers = this->ResetNotifiers(parsedMsg["level"].asInt());
         this->CleanUp();

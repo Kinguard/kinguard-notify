@@ -156,6 +156,22 @@ void TestNotify::testAckNoMsg()
     CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect number of notifiers triggered",-1,countTriggered);
 }
 
+void TestNotify::testAckEmptyMsg()
+{
+    string id;
+    int countTriggered;
+
+    id = String::UUID();
+    printf("Creating empty message '%s' in '%s'\n",id.c_str(),SPOOLDIR);
+
+    File::Write(SPOOLDIR+id, "",0660);
+
+    ExistingMessage Msg(id);
+    countTriggered = Msg.Ack();
+
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect number of notifiers triggered",0,countTriggered);
+}
+
 
 void TestNotify::testCleanup()
 {

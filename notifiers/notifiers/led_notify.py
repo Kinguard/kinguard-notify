@@ -186,6 +186,7 @@ def setPrioMsg(issuer_prio = []):
 				f = open(os.path.join(SPOOLDIR, message), 'r')
 				msg = json.loads(f.read())
 			except Exception as e:
+				dprint("Reading message: " + message)
 				dprint(e)
 				dprint("Failed to read message\n")
 

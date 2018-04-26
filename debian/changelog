@@ -1,3 +1,9 @@
+kgpnotify (1.0.8) vili; urgency=medium
+
+  * Fix crash when message file is empty 
+
+ -- PA Nilsson <pa@openproducts.se>  Thu, 26 Apr 2018 10:29:00 +0200
+
 kgpnotify (1.0.7) vili; urgency=medium
 
   * Added LED functionality for KEEP 
