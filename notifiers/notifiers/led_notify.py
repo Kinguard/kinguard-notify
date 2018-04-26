@@ -189,20 +189,24 @@ def setPrioMsg(issuer_prio = []):
 				dprint("Reading message: " + message)
 				dprint(e)
 				dprint("Failed to read message\n")
+				continue
 
-			if( (int(msg['level']) == curr_lvl) and len(issuer_prio) ):
-				try:
-					issuer = issuer_prio.index(msg['issuer'])
-					if (issuer < curr_issuer):
-						curr_issuer = issuer
-						currmsg = message
-				except:
-					dprint("Issuer '"+msg['issuer']+"' not in prio list")
-				
-			if(int(msg['level']) < curr_lvl):
-				currmsg = message
-				curr_lvl = int(msg['level'])
-	
+			try:
+				if( (int(msg['level']) == curr_lvl) and len(issuer_prio) ):
+					try:
+						issuer = issuer_prio.index(msg['issuer'])
+						if (issuer < curr_issuer):
+							curr_issuer = issuer
+							currmsg = message
+					except:
+						dprint("Issuer '"+msg['issuer']+"' not in prio list")
+					
+				if(int(msg['level']) < curr_lvl):
+					currmsg = message
+					curr_lvl = int(msg['level'])
+			except:
+				print("Failed to read message '%s'" % message)
+				continue
 	
 	msg = {}
 	if(currmsg != ""):
