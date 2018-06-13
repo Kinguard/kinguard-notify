@@ -62,8 +62,8 @@ def SetHeartbeat(ledpath):
 	setTrigger(ledpath, "heartbeat")
 
 def SetBlink(ledpath,duty = 50, period = 1000): 
-	setTrigger(ledpath, "timer")
 	setDutyCycle(ledpath,duty,period)
+	setTrigger(ledpath, "timer")
 
 def dprint(mystring):
 	if(DEBUG):
