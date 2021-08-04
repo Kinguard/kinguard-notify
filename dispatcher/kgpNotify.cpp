@@ -96,7 +96,7 @@ Json::Value Message::getFilemsg(string id) {
 }
 int Message::CleanUp()
 {
-    this->CleanUp(false);
+    return this->CleanUp(false);
 }
 
 int Message::CleanUp(bool boot)
