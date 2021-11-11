@@ -6,12 +6,13 @@
 #include <time.h>
 
 #include <unistd.h>
-#include <json/json.h>
 #include <libutils/Logger.h>
 #include <libutils/FileUtils.h>
 #include <libutils/String.h>
 #include <libutils/Process.h>
+#include <nlohmann/json.hpp>
 
+using json = nlohmann::json;
 
 namespace Notify
 {
@@ -21,29 +22,24 @@ using namespace std;
 extern const vector<string> LogLevels;
 
 string ltos(int level);
-int ltoi(string level);
+int ltoi(const string& level);
 
 class Message
 {
-
-protected:
-    Json::Reader reader;
-    Json::FastWriter writer;
-
 public:
-    Message();
+	Message() = default;
     /**
      * @brief Trigger notifiers
      * @return The number of notifiers triggered
      */
-    int TrigNotifiers(string id, int loglevel);
+	int TrigNotifiers(const string& id, int loglevel);
     int ResetNotifiers(int loglevel);
 
     /**
      * @brief Read a message 'id' from file
      * @return the message as a Json object
      */
-    Json::Value getFilemsg(string path);
+	json getFilemsg(const string& path);
 
     /**
      * @brief Deletes messages from archive that are older than MAX_DAYS old
@@ -74,7 +70,7 @@ public:
      * @brief Creates a new empty message.
      * @return the new object
      */
-    NewMessage();
+	NewMessage() = default;
 
     /**
      * @brief Creates a new message with log_level (as string) and body set
@@ -92,7 +88,7 @@ public:
      * @brief Enter details of message
      * @return none
      */
-    void Details(string level, const string& message, string issuer, bool persistant, bool clearonboot);
+	void Details(const string& level, const string& message, const string &issuer, bool persistant, bool clearonboot);
 
     /**
      * @brief Write message to spool queue and trigger notifiers
@@ -118,7 +114,7 @@ public:
      */
     void Dump();
 
-    virtual ~NewMessage();
+	virtual ~NewMessage() = default;
 
 };
 
@@ -134,7 +130,7 @@ public:
      * @return the new objext
      * Use for functions that operates on messages that exist on file.
      */
-    ExistingMessage(string id);
+	ExistingMessage(const string &id);
 
     /**
      * @brief Acknowledge (move to history) the message

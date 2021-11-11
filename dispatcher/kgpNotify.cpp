@@ -16,7 +16,7 @@ const vector<string> LogLevels {
     "LOG_DEBUG"
 };
 
-int ltoi(string level)
+int ltoi(const string& level)
 {
    if(level == "LOG_EMERG")     return LOG_EMERG;
    if(level == "LOG_ALERT")     return LOG_ALERT;
@@ -35,18 +35,14 @@ string ltos(int level)
 }
 
 /*   ---- CLASS 'Message' ---  */
-Message::Message()
-{
-
-}
-
 int Message::ResetNotifiers(int loglevel)
 {
     //printf("Reset Notifiers on loglevel: %s\n",ltos(loglevel).c_str());
     return this->TrigNotifiers("",loglevel);
 }
 
-int Message::TrigNotifiers(string id, int loglevel)
+
+int Message::TrigNotifiers(const string& id, int loglevel)
 {
     int triggercount = 0;
     int success;
@@ -58,10 +54,10 @@ int Message::TrigNotifiers(string id, int loglevel)
         if(File::DirExists(dir) && (File::GetFileName(dir) == ltos(loglevel)) )
         {
             list<string> notifiers = File::Glob(dir+"/*");
-            for( const string& notifier: notifiers)
+			for( string notifier: notifiers)
             {
                 //printf("Notifier '%s'' in Dir '%s', id: %s\n",notifier.c_str(),File::GetFileName(dir).c_str(),id.c_str());
-                tie(success,retmsg) = Process::Exec(notifier+" "+id);
+				tie(success,retmsg) = Process::Exec(notifier+=" "s+=id);
                 if ( success ) {
                     triggercount++;
                 }
@@ -77,23 +73,23 @@ int Message::TrigNotifiers(string id, int loglevel)
     }
     return triggercount;
 }
-Json::Value Message::getFilemsg(string id) {
+json Message::getFilemsg(const string& id) {
     string jsonMsg;
-    Json::Value parsedMsg;
-    bool parsingSuccessful;
+	json parsedMessage;
 
     if(File::FileExists(id))
     {
         jsonMsg = File::GetContentAsString(id);
-        parsingSuccessful =  reader.parse(jsonMsg,parsedMsg);
+
+		parsedMessage = json::parse(jsonMsg);
     }
     else
     {
         logg << Logger::Error << "Error reading message file" << lend;
     }
-    return parsedMsg;
-
+	return parsedMessage;
 }
+
 int Message::CleanUp()
 {
     return this->CleanUp(false);
@@ -101,7 +97,7 @@ int Message::CleanUp()
 
 int Message::CleanUp(bool boot)
 {
-    Json::Value parsedMsg;
+	json parsedMsg;
     time_t msgtime;
     int countRemoved=0;
     bool persistantmsg=false;
@@ -112,9 +108,10 @@ int Message::CleanUp(bool boot)
     {
         //logg << Logger::Debug << "Read file" << File::GetFileName(message) << lend;
         parsedMsg = this->getFilemsg(message);
-        if( parsedMsg.isMember("date") && parsedMsg["date"].isString() ) {
-            msgtime = stol(parsedMsg["date"].asString());
-            if( time(NULL) > (msgtime + MAX_HISTORY) )
+		parsedMsg.contains("date");
+		if( parsedMsg.contains("date") && parsedMsg["date"].is_string() ) {
+			msgtime = stol( parsedMsg["date"].get<string>() );
+			if( time(nullptr) > (msgtime + MAX_HISTORY) )
             {
                 logg << Logger::Debug << "Removing message " << File::GetFileName(message) << lend;
                 File::Delete(message);
@@ -136,18 +133,18 @@ int Message::CleanUp(bool boot)
         {
             //logg << Logger::Debug << "Read file" << File::GetFileName(message) << lend;
             parsedMsg = this->getFilemsg(message);
-            if( parsedMsg.isMember("date") && parsedMsg["date"].isString() ) {
-                msgtime = stol(parsedMsg["date"].asString());
-                if( parsedMsg.isMember("persistant") ) {
-                    persistantmsg = parsedMsg["persistant"].asBool();
+			if( parsedMsg.contains("date") && parsedMsg["date"].is_string() ) {
+				msgtime = stol(parsedMsg["date"].get<string>());
+				if( parsedMsg.contains("persistant") ) {
+					persistantmsg = parsedMsg["persistant"];
                 }
-                if( parsedMsg.isMember("clearonboot") ) {
-                    clearonboot = parsedMsg["clearonboot"].asBool();
+				if( parsedMsg.contains("clearonboot") ) {
+					clearonboot = parsedMsg["clearonboot"];
                 }
                 if(
                         (!persistantmsg) && (
-                            (time(NULL) > (msgtime + MAX_ACTIVE))
-                            && (ltoi(parsedMsg["level"].asString()) >= LOG_AUTOREMOVE )
+							((time(nullptr) > (msgtime + MAX_ACTIVE))
+							&& (ltoi(parsedMsg["level"].get<string>()) >= LOG_AUTOREMOVE ))
                             || (boot && clearonboot) )
                 )
                 {
@@ -179,10 +176,6 @@ int Message::CleanUp(bool boot)
 
 /*   ---  Public functions ---  */
 
-NewMessage::NewMessage()
-{
-}
-
 NewMessage::NewMessage(string level, string message)
 {
     this->Details(level,message,"",false, true);
@@ -194,20 +187,20 @@ NewMessage::NewMessage(int level, string message)
 }
 
 
-void NewMessage::Details(string level, const string& message, string issuer, bool persistant, bool clearonboot)
+void NewMessage::Details(const string& level, const string& message, const string& issuer, bool persistant, bool clearonboot)
 {
     this->log_level = ltoi(level);
     this->body = message;
     this->persistant = persistant;
     this->id = String::UUID();
-    this->date = time(NULL);
+	this->date = time(nullptr);
     this->issuer = issuer;
     this->clearonboot = clearonboot;
 }
 
 int NewMessage::Send()
 {
-    Json::Value jsonMsg;
+	json jsonMsg;
 
     jsonMsg["date"] = to_string(this->date);
     jsonMsg["message"] = this->body;
@@ -218,7 +211,7 @@ int NewMessage::Send()
     jsonMsg["persistant"] = this->persistant;
     jsonMsg["clearonboot"] = this->clearonboot;
 
-    File::Write(SPOOLDIR+id, writer.write(jsonMsg).c_str(),0660);
+	File::Write(SPOOLDIR+id, jsonMsg.dump().c_str(),0660);
     if (File::FileExists(SPOOLDIR+id))
     {
         return this->TrigNotifiers(id,this->log_level);
@@ -246,14 +239,9 @@ void NewMessage::Dump()
     printf("Log level: %s\n",ltos(this->log_level).c_str());
 }
 
-NewMessage::~NewMessage()
-{
-
-}
-
 /* -------- Existing Message Class ------------  */
 
-ExistingMessage::ExistingMessage(string id)
+ExistingMessage::ExistingMessage(const string& id)
 {
     this->id = id;
 }
@@ -264,14 +252,14 @@ ExistingMessage::ExistingMessage(string id)
 
 int ExistingMessage::Ack()
 {
-    Json::Value parsedMsg;
+	json parsedMsg;
     int countTriggers;
 
     if( (this->id != "") && File::FileExists(SPOOLDIR+this->id) ) {
         parsedMsg = this->getFilemsg(SPOOLDIR+this->id);
         logg << Logger::Debug << "Ack message, archiving to history: " << this->id << lend;
         File::Move(SPOOLDIR+this->id,HISTORYDIR+this->id);
-        countTriggers = this->ResetNotifiers(parsedMsg["level"].asInt());
+		countTriggers = this->ResetNotifiers(parsedMsg["level"]);
         this->CleanUp();
         return countTriggers;
     }

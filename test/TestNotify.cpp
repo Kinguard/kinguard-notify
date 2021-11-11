@@ -1,34 +1,36 @@
+
+
 #include "TestNotify.h"
 #include "kgpNotify.h"
-#include <json/json.h>
-#include <time.h>
-#include <syslog.h>
 #include "Config.h"
+
+#include <ctime>
+#include <syslog.h>
 #include <libutils/FileUtils.h>
 #include <libutils/Process.h>
 #include <libutils/String.h>
-
+#include <nlohmann/json.hpp>
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestNotify);
 
 using namespace Notify;
 using namespace Utils;
-Json::Reader reader;
+
+using json = nlohmann::json;
 
 string TestNotify::CreateTestMsg()
 {
-    Json::FastWriter writer;
-    Json::Value testmsg;
+	json testmsg;
     string testid;
 
     testid = String::UUID();
-    testmsg["date"] = to_string(time(NULL));
+	testmsg["date"] = to_string(time(nullptr));
     testmsg["message"] = "Test Message";
     testmsg["level"] = "LOG_WARNING";
     testmsg["issuer"] = "Test system";
     testmsg["id"] = testid;
 
-    File::Write(SPOOLDIR+testid, writer.write(testmsg).c_str(),0660);
+	File::Write(SPOOLDIR+testid, testmsg.dump().c_str(),0660);
     return testid;
 }
 
@@ -68,7 +70,6 @@ void TestNotify::testNewMsg()
 void TestNotify::testContentMsg()
 {
     string id;
-    Json::Value parsedMsg;
     string testmessage = "Alert message";
     int countTriggered;
 
@@ -77,16 +78,26 @@ void TestNotify::testContentMsg()
     CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect number of notifiers triggered",VALID_ALERT_NOTIFIERS,countTriggered);
     id = Msg.GetID();
     CPPUNIT_ASSERT_MESSAGE("ID shoule not be empty",id != "");
-    parsedMsg = Msg.getFilemsg(SPOOLDIR+id);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message body",testmessage,parsedMsg["message"].asString());
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message integer loglevel",LOG_ALERT,parsedMsg["level"].asInt());
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message loglevel",ltos(LOG_ALERT),parsedMsg["levelText"].asString());
+	json parsedMsg = Msg.getFilemsg(SPOOLDIR+id);
+	cout << "Incorrect message body" << testmessage << " - "<< parsedMsg.dump()<< endl;
+	cout << "Message " << parsedMsg["message"].dump()<< endl;
+	if( testmessage == parsedMsg["message"] )
+	{
+		cout << "Equal" << endl;
+	}
+	else
+	{
+		cout << "Not equal" << endl;
+	}
+	CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message body",testmessage,parsedMsg["message"].get<string>());
+	CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message integer loglevel",LOG_ALERT,parsedMsg["level"].get<int>());
+	CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message loglevel",ltos(LOG_ALERT),parsedMsg["levelText"].get<string>());
 }
 
 void TestNotify::testDetailedMsg()
 {
     string id;
-    Json::Value parsedMsg;
+	json parsedMsg;
     string testmessage = "Test Error message";
     string issuer = "Donald Duck";
 
@@ -98,14 +109,14 @@ void TestNotify::testDetailedMsg()
 
     CPPUNIT_ASSERT_MESSAGE("ID shoule not be empty",id != "");
     parsedMsg = Msg.getFilemsg(SPOOLDIR+id);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect persistance",true,parsedMsg["persistant"].asBool());
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect issuer",issuer,parsedMsg["issuer"].asString());
+	CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect persistance",true,parsedMsg["persistant"].get<bool>());
+	CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect issuer",issuer,parsedMsg["issuer"].get<string>());
 }
 
 void TestNotify::testNoticeMsg()
 {
     string id;
-    Json::Value parsedMsg;
+	json parsedMsg;
     string testmessage = "Notice message";
     int countTriggered;
 
@@ -117,8 +128,8 @@ void TestNotify::testNoticeMsg()
     id = Msg.GetID();
     CPPUNIT_ASSERT_MESSAGE("ID shoule not be empty",id != "");
     parsedMsg = Msg.getFilemsg(SPOOLDIR+id);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message body",testmessage,parsedMsg["message"].asString());
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message loglevel",ltos(LOG_NOTICE),parsedMsg["levelText"].asString());
+	CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message body",testmessage,parsedMsg["message"].get<string>());
+	CPPUNIT_ASSERT_EQUAL_MESSAGE("Incorrect message loglevel",ltos(LOG_NOTICE),parsedMsg["levelText"].get<string>());
 }
 
 void TestNotify::testExistingMsg()
@@ -164,7 +175,7 @@ void TestNotify::testAckEmptyMsg()
     id = String::UUID();
     printf("Creating empty message '%s' in '%s'\n",id.c_str(),SPOOLDIR);
 
-    File::Write(SPOOLDIR+id, "",0660);
+	File::Write(SPOOLDIR+id, "",0660);
 
     ExistingMessage Msg(id);
     countTriggered = Msg.Ack();
@@ -175,24 +186,43 @@ void TestNotify::testAckEmptyMsg()
 
 void TestNotify::testCleanup()
 {
-    string testmessage;
+	json testmessage;
     string aid,hid;
     time_t oldtime;
     int removed;
 
     // write a message that is older than MAX_ACTIVE time
     aid = String::UUID();
-    oldtime = time(NULL) - ACTIVETIME;
-    testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+aid+"\",\"issuer\":\"\",\"level\":\"LOG_NOTICE\",\"message\":\"Notice message\",\"persistant\":false,\"clearonboot\":true}";
+	oldtime = time(nullptr) - ACTIVETIME;
+	//testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+aid+"\",\"issuer\":\"\",\"level\":\"LOG_NOTICE\",\"message\":\"Notice message\",\"persistant\":false,\"clearonboot\":true}";
+	testmessage = {
+		{ "date",		to_string(oldtime)},
+		{ "id",			aid},
+		{ "issuer",		""},
+		{ "level",		"LOG_NOTICE"},
+		{ "message",		"Notice message"},
+		{ "persistant",	false},
+		{ "clearonboot",	true}
+	};
     //printf("MSG: %s\n",testmessage.c_str());
-    File::Write(SPOOLDIR "/"+aid,testmessage,0660);
+	File::Write(SPOOLDIR "/"+aid,testmessage.dump(),0660);
 
     // write a message that is older than MAX_HISTORY time
     hid = String::UUID();
-    oldtime = time(NULL) - HISTORYTIME;
-    testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+hid+"\",\"issuer\":\"\",\"level\":\"LOG_NOTICE\",\"message\":\"Notice message\",\"persistant\":false,\"clearonboot\":true}";
-    //printf("MSG: %s\n",testmessage.c_str());
-    File::Write(HISTORYDIR+hid,testmessage,0660);
+	oldtime = time(nullptr) - HISTORYTIME;
+	//testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+hid+"\",\"issuer\":\"\",\"level\":\"LOG_NOTICE\",\"message\":\"Notice message\",\"persistant\":false,\"clearonboot\":true}";
+	testmessage = {
+		{ "date",			to_string(oldtime) },
+		{ "id",				hid },
+		{ "issuer",			"" },
+		{ "level",			"LOG_NOTICE" },
+		{ "message",		"Notice message" },
+		{ "persistant",		false },
+		{ "clearonboot",	true }
+	};
+
+	//printf("MSG: %s\n",testmessage.c_str());
+	File::Write(HISTORYDIR+hid,testmessage.dump(),0660);
 
     Notify::Message Msg;
     removed = Msg.CleanUp();
@@ -210,17 +240,16 @@ void TestNotify::testCleanupPersistance()
     string testmessage;
     string pid;
     time_t oldtime;
-    int removed;
 
     // write a message that is older than MAX_ACTIVE time but with persistant set to 'true'
     pid = String::UUID();
-    oldtime = time(NULL) - ACTIVETIME;
+	oldtime = time(nullptr) - ACTIVETIME;
     testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+pid+"\",\"issuer\":\"\",\"level\":\"LOG_NOTICE\",\"message\":\"Notice message\",\"persistant\":true,\"clearonboot\":true}";
     //printf("MSG: %s\n",testmessage.c_str());
     File::Write(SPOOLDIR "/"+pid,testmessage,0660);
 
     Notify::Message Msg;
-    removed = Msg.CleanUp();
+	Msg.CleanUp();
 
     CPPUNIT_ASSERT_MESSAGE("'Persistant' message not in SPOOLDIR",Utils::File::FileExists(SPOOLDIR+pid));
 
@@ -231,11 +260,10 @@ void TestNotify::testCleanupLevel()
     string nid,wid;
     time_t oldtime;
     string testmessage = "Notice message, should be removed";
-    int removed;
 
     // write a message that is older than MAX_ACTIVE time and with level set to "LOG_NOTICE"
     nid = String::UUID();
-    oldtime = time(NULL) - ACTIVETIME;
+	oldtime = time(nullptr) - ACTIVETIME;
     testmessage = "{\"date\":\""+to_string(oldtime)+"\",\"id\":\""+nid+"\",\"issuer\":\"\",\"level\":\"LOG_NOTICE\",\"message\":\"Notice message\",\"persistant\":false,\"clearonboot\":true}";
     //printf("MSG: %s\n",testmessage.c_str());
     File::Write(SPOOLDIR "/"+nid,testmessage,0660);
@@ -249,7 +277,7 @@ void TestNotify::testCleanupLevel()
     File::Write(SPOOLDIR "/"+wid,testmessage,0660);
 
     Notify::Message Msg;
-    removed = Msg.CleanUp();
+	Msg.CleanUp();
 
     CPPUNIT_ASSERT_MESSAGE("'Notice' message still in SPOOLDIR",Utils::File::FileExists(SPOOLDIR+nid) == false);
 

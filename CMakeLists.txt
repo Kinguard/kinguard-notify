@@ -29,7 +29,7 @@ else()
                 set (NOTIFIERSDIR "${PROJECT_SOURCE_DIR}/test-notifiers/")
 endif()
 
-add_definitions( -std=c++11 -Werror )
+add_definitions( -Wall -Werror )
 
 include_directories("${PROJECT_BINARY_DIR}")
 include_directories ( "${LIBOPI_INCLUDE_DIRS}" )

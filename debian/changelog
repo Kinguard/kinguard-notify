@@ -1,3 +1,16 @@
+kgpnotify (1.0.13~test2) vigrid; urgency=medium
+
+  * Cleanups
+
+ -- Tor Krill <tor@openproducts.se>  Thu, 11 Nov 2021 21:00:20 +0100
+
+kgpnotify (1.0.13~test1) vigrid; urgency=medium
+
+  * Test build for bullseye
+  * Minor c++ updates
+
+ -- Tor Krill <tor@openproducts.se>  Thu, 11 Nov 2021 10:28:25 +0100
+
 kgpnotify (1.0.12) vili; urgency=medium
 
   * Rebuild
