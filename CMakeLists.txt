@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 2.8)
 include( FindPkgConfig )
 pkg_check_modules ( LIBOPI REQUIRED libopi )
 pkg_check_modules ( LIBUTILS REQUIRED libutils>=1.5.8 )
-pkg_check_modules ( LIBJSONCPP REQUIRED jsoncpp )
 
 set (VERSION_MAJOR 1)
 set (VERSION_MINOR 0)
