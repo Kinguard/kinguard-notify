@@ -80,8 +80,10 @@ json Message::getFilemsg(const string& id) {
     if(File::FileExists(id))
     {
         jsonMsg = File::GetContentAsString(id);
-
-		parsedMessage = json::parse(jsonMsg);
+		if( ! jsonMsg.empty() )
+		{
+			parsedMessage = json::parse(jsonMsg);
+		}
     }
     else
     {
@@ -253,15 +255,18 @@ ExistingMessage::ExistingMessage(const string& id)
 int ExistingMessage::Ack()
 {
 	json parsedMsg;
-    int countTriggers;
+	int countTriggers = 0;
 
     if( (this->id != "") && File::FileExists(SPOOLDIR+this->id) ) {
         parsedMsg = this->getFilemsg(SPOOLDIR+this->id);
-        logg << Logger::Debug << "Ack message, archiving to history: " << this->id << lend;
-        File::Move(SPOOLDIR+this->id,HISTORYDIR+this->id);
-		countTriggers = this->ResetNotifiers(parsedMsg["level"]);
-        this->CleanUp();
-        return countTriggers;
+		logg << Logger::Debug << "Ack message, archiving to history: " << this->id << lend;
+		File::Move(SPOOLDIR+this->id,HISTORYDIR+this->id);
+		if( ! parsedMsg.is_null() )
+		{
+			countTriggers = this->ResetNotifiers(parsedMsg["level"]);
+		}
+		this->CleanUp();
+		return countTriggers;
     }
     else
     {
